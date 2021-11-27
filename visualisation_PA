@@ -1,0 +1,25 @@
+#Let us plot the distribution
+plt.rcParams['figure.figsize'] = [10, 4]
+plt.rcParams['lines.linewidth'] = 2
+
+def countPlot(target="Target"):
+    ax = sns.countplot(x=target, data=train_labels_data, palette="pastel")
+
+    for p in ax.patches:
+        ax.annotate('{}'.format(p.get_height()), (p.get_x()+0.400, p.get_height()+0.20), ha='center')
+
+    plt.show()
+
+countPlot("Target")
+
+#To plot the 3 categories of the class
+f, ax = plt.subplots(1,1, figsize=(14,10))
+total = float(len(class_data))
+sns.countplot(class_data['class'],order = class_data['class'].value_counts().index, palette='Set3')
+for p in ax.patches:
+    height = p.get_height()
+    ax.text(p.get_x()+p.get_width()/2.,
+            height + 6,
+            '{:1.2f}%'.format(100*height/total),
+            ha="center") 
+plt.show()
