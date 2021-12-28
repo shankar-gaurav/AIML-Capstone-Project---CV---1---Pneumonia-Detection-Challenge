@@ -1,0 +1,31 @@
+img= cv2.imread('/content/drive/MyDrive/chest_xray/test/NORMAL/IM-0017-0001.jpeg')
+tempimg = img
+img = cv2.resize(img,(300,300))
+img = img/255.0
+img = img.reshape(1,300,300,3)
+model.predict(img)
+
+prediction = model.predict(img) >= 0.5
+if prediction>=0.5:
+  prediction = "Pneumonia"
+else:
+  prediction = "Normal"
+print("Prediction: "+prediction)
+plt.imshow(tempimg)
+plt.title("Prediction: "+prediction, fontsize=14
+
+img= cv2.imread('/content/drive/MyDrive/chest_xray/test/PNEUMONIA/person104_bacteria_492.jpeg')
+tempimg = img
+img = cv2.resize(img,(300,300))
+img = img/255.0
+img = img.reshape(1,300,300,3)
+model.predict(img)
+
+prediction = model.predict(img) >= 0.5
+if prediction>=0.5:
+  prediction = "Pneumonia"
+else:
+  prediction = "Normal"
+print("Prediction: "+prediction)
+plt.imshow(tempimg)
+plt.title("Prediction: "+prediction, fontsize=14)
