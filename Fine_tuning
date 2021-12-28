@@ -1,0 +1,67 @@
+#Fine Tuning
+pretrained_model.trainable = True
+for layer in pretrained_model.layers[:15]:
+    layer.trainable = False
+for idx, layer in enumerate(pretrained_model.layers):
+    print("layer {}: {}, trainable: {}".format(idx, layer.name, layer.trainable))
+    
+fine_tune_model = tf.keras.Sequential([
+    pretrained_model,
+    tf.keras.layers.BatchNormalization(),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(2, activation='softmax'),
+])
+
+FINE_TUNE_LEARNING_RATE = INITIAL_LEARNING_RATE / 10
+
+optimizer   = tf.keras.optimizers.Adam(learning_rate=FINE_TUNE_LEARNING_RATE)
+loss        = 'categorical_crossentropy'
+metrics     = ['accuracy']
+
+fine_tune_model.compile(
+    loss=loss,     
+    optimizer=optimizer, 
+    metrics=metrics
+)
+
+fine_tune_model.summary()
+
+for idx, layer in enumerate(fine_tune_model.layers):
+    print("layer {}: {}, trainable: {}".format(idx, layer.name, layer.trainable))
+    
+reset_graph()
+reset_callbacks()
+fine_tune_model_name = curr_model_dir + "new_epoch_{epoch:02d}-val_loss_{val_loss:.2f}.hdf5"
+callbacks = get_callbacks(model_name=fine_tune_model_name)
+
+FINE_TUNE_EPOCHS = 10
+TOTAL_EPOCHS =  INITIAL_EPOCH + FINE_TUNE_EPOCHS
+
+fine_tune_history = fine_tune_model.fit(
+        train_dataset,
+        class_weight = classweight,
+        callbacks = callbacks,
+        shuffle = True,
+        validation_data = val_dataset,
+        epochs = TOTAL_EPOCHS,
+        verbose=1
+    )
+    
+plot_learning_curves(fine_tune_history)
+
+best_model_epoch, best_model_val_loss, best_model_val_acc = get_best_model(fine_tune_history)
+print("epoch: {}, val_loss: {}, val_acc: {}".format(best_model_epoch, best_model_val_loss, best_model_val_acc))
+best_fine_tune_model = fine_tune_model_name.format(
+                epoch   =   best_model_epoch,
+                val_loss=   round(best_model_val_loss, 2)
+            )
+best_fine_tune_model
+
+score = fine_tune_model.evaluate(x_test.numpy(), y_test.numpy(), verbose=0)
+
+y_pred = fine_tune_model.predict(x_test.numpy())
+y_pred_classes = np.argmax(y_pred, axis = 1) 
+y_true = np.argmax(y_test.numpy(), axis = 1) 
+
+confusion_matrix_file = output_figures_dir+"/fine_tune_confusion_matrix"
+get_confusion_matrix(y_true, y_pred_classes, confusion_matrix_file, best_fine_tune_model)
